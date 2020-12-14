@@ -22,6 +22,10 @@ type AbilitySystem struct {
 	m map[uint64]abilityEntity
 }
 
+func NewAbilitySystem() *AbilitySystem {
+	return &AbilitySystem{m: map[uint64]abilityEntity{}}
+}
+
 func (a AbilitySystem) New(world *ecs.World) {
 	engo.Mailbox.Listen(event.RACE_CHANGED, func(msg engo.Message) {
 		m, ok := msg.(event.RaceChangedMsg)
@@ -29,17 +33,24 @@ func (a AbilitySystem) New(world *ecs.World) {
 			return
 		}
 		e := a.m[m.ID()]
-		for i, abi := range e.abilityList {
-			incr, ok := m.NewRace.AbilityScoreIncrease[abi.typ]
+		allAbility := e.AllAbility()
+		for i := range allAbility {
+			abi := allAbility[i]
+			incr, ok := m.NewRace.AbilityScoreIncrease[abi.Type]
 			if !ok {
 				continue
 			}
-			e.abilityList[i].score.AddBonus(attr.Bonus{
+			a.AddScoreBonus(abi, attr.Bonus{
 				Reason: "racial_bonus",
 				Bonus:  incr,
 			})
 		}
 	})
+}
+
+func (a AbilitySystem) AddScoreBonus(ab *cmp.Ability, bonus ...attr.Bonus) {
+	ab.Score.AddBonus(bonus...)
+	ab.ScoreModifier = gScoreToModifier.calcModifier(ab.Score.Total())
 }
 
 func (a AbilitySystem) Update(dt float32) {

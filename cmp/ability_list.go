@@ -10,20 +10,24 @@ import (
 )
 
 type AbilityListComponent struct {
-	abilityList [ability.TYPE_COUNT]Ability
+	abilityList [ability.TYPE_COUNT]*Ability
 }
 
-func NewAbilityListComponent() AbilityListComponent {
-	return AbilityListComponent{abilityList: [ability.TYPE_COUNT]Ability{}}
+func NewAbilityListComponent(a [ability.TYPE_COUNT]*Ability) *AbilityListComponent {
+	return &AbilityListComponent{abilityList: a}
 }
 
-func (c AbilityListComponent) Ability(p ability.Type) (Ability, bool) {
+func (c AbilityListComponent) Ability(p ability.Type) (*Ability, bool) {
 	for _, a := range c.abilityList {
-		if a.typ == p {
+		if a.Type == p {
 			return a, true
 		}
 	}
-	return Ability{}, false
+	return nil, false
+}
+
+func (c AbilityListComponent) AllAbility() [ability.TYPE_COUNT]*Ability {
+	return c.abilityList
 }
 
 func (c AbilityListComponent) Clone() AbilityListComponent {

@@ -18,54 +18,25 @@ const (
 )
 
 type Ability struct {
-	typ           ability.Type
-	score         attr.Attr
-	scoreModifier int
+	Type          ability.Type
+	Score         attr.Attr
+	ScoreModifier int
 }
 
-func NewAbility(p ability.Type, baseScore int) (*Ability, error) {
+func NewAbility(p ability.Type, baseScore int) *Ability {
 	if err := MustInScoreRange(baseScore); err != nil {
-		return nil, fmt.Errorf("cmp.NewAbility: %w", err)
+		panic(fmt.Errorf("cmp.NewAbility: %w", err))
 	}
 	v, err := attr.New(MIN_ABILITY_SCORE, MAX_ABILITY_SCORE)
 	if err != nil {
-		return nil, fmt.Errorf("cmp.NewAbility: %w", err)
+		panic(fmt.Errorf("cmp.NewAbility: %w", err))
 	}
 	v.SetBase(baseScore)
-	a := &Ability{}
-	return a, nil
-}
-
-func (a *Ability) ScoreModifier() int {
-	return a.scoreModifier
-}
-
-func (a *Ability) SetScoreModifier(scoreModifier int) {
-	a.scoreModifier = scoreModifier
-}
-
-func (a *Ability) Score() attr.Attr {
-	return a.score
-}
-
-func (a *Ability) SetScore(score attr.Attr) {
-	a.score = score
-}
-
-func (a *Ability) resetScoreModifier() {
-
-}
-
-func (a *Ability) Typ() ability.Type {
-	return a.typ
-}
-
-func (a *Ability) SetTyp(typ ability.Type) {
-	a.typ = typ
+	return a
 }
 
 func (a Ability) Clone() Ability {
-	a.score = a.score.Clone()
+	a.Score = a.Score.Clone()
 	return a
 }
 

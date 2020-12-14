@@ -21,6 +21,10 @@ type RaceSystem struct {
 	m map[uint64]raceEntity
 }
 
+func NewRaceSystem() *RaceSystem {
+	return &RaceSystem{m: map[uint64]raceEntity{}}
+}
+
 func (a RaceSystem) Update(dt float32) {
 	panic("implement me")
 }

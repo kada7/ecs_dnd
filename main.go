@@ -1,6 +1,9 @@
 package main
 
 import (
+	"esc_dnd/cmp"
+	"esc_dnd/enum/ability"
+	"esc_dnd/sys"
 	"fmt"
 	"github.com/EngoEngine/ecs"
 	"github.com/EngoEngine/engo"
@@ -10,58 +13,51 @@ func main() {
 	world := &ecs.World{}
 	engo.Mailbox = &engo.MessageManager{}
 
-	absys := &AbilitySystem{map[uint64]abilityEntity{}}
-	rcsys := &RaceSystem{map[uint64]raceEntity{}}
+	absys := sys.NewAbilitySystem()
+	rcsys := sys.NewRaceSystem()
 	world.AddSystem(absys)
 	world.AddSystem(rcsys)
 	ch := CharacterEntity{
 		BasicEntity: ecs.NewBasic(),
-		AbilityComponent: AbilityComponent{
-			AbilityScoreTotal: 10,
-			AbilityScoreBase:  10,
-			AbilityScoreBonus: map[string]Bonus{
-				"race_bonus": {
-					Bonus:  1,
-					Reason: "race_bonus",
-				},
+		AbilityListComponent: cmp.NewAbilityListComponent([ability.TYPE_COUNT]*cmp.Ability{
+			cmp.NewAbility(ability.Strength, 10),
+			cmp.NewAbility(ability.Charisma, 10),
+			cmp.NewAbility(ability.Intelligence, 10),
+			cmp.NewAbility(ability.Constitution, 10),
+			cmp.NewAbility(ability.Dexterity, 10),
+			cmp.NewAbility(ability.Wisdom, 10),
+		}),
+		RaceComponent: &cmp.RaceComponent{
+			Name: "fighter",
+			AbilityScoreIncrease: map[ability.Type]int{
+				ability.Strength: 1,
 			},
-			AbilityScoreModifier: 5,
-		},
-		RaceComponent: RaceComponent{
-			Name:                 "fighter",
-			AbilityScoreIncrease: 1,
 		},
 	}
 
 	for _, system := range world.Systems() {
-		switch sys := system.(type) {
-		case *AbilitySystem:
-			sys.Add(&ch.BasicEntity, &ch.AbilityComponent)
-		case *RaceSystem:
-			sys.Add(&ch.BasicEntity, &ch.RaceComponent)
+		switch s := system.(type) {
+		case *sys.AbilitySystem:
+			s.Add(&ch.BasicEntity, ch.AbilityListComponent)
+		case *sys.RaceSystem:
+			s.Add(&ch.BasicEntity, ch.RaceComponent)
 		}
 	}
 
 	absys.New(nil)
-	fmt.Printf("%+v\n", ch.AbilityComponent)
-	ch.RaceComponent = RaceComponent{
-		Name:                 "cer",
-		AbilityScoreIncrease: 2,
+	fmt.Printf("%+v\n", ch.AbilityListComponent)
+	ch.RaceComponent = &cmp.RaceComponent{
+		Name: "cer",
+		AbilityScoreIncrease: map[ability.Type]int{
+			ability.Charisma: 1,
+		},
 	}
-	rcsys.ChangeRace(ch.ID(), &ch.RaceComponent)
-	fmt.Printf("%+v\n", ch.AbilityComponent)
+	rcsys.ChangeRace(ch.ID(), ch.RaceComponent)
+	fmt.Printf("%+v\n", ch.AbilityListComponent)
 }
 
 type CharacterEntity struct {
 	ecs.BasicEntity
-	//CreatureComponent
-	//HealthComponent
-	//MoveComponent
-	AbilityComponent
-	RaceComponent
-}
-
-type Bonus struct {
-	Bonus  int
-	Reason string
+	*cmp.AbilityListComponent
+	*cmp.RaceComponent
 }
